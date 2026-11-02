@@ -7,3 +7,9 @@ SEGREDO_PATH = BASE_DIR / "segredo.key"
 
 MAX_TENTATIVAS = 3
 PERFIS = ("admin", "apurador", "eleitor")
+
+# Estados da eleição (só avançam, nunca voltam): nao_iniciada -> aberta -> encerrada
+NAO_INICIADA = "nao_iniciada"
+ABERTA = "aberta"
+ENCERRADA = "encerrada"
+MIN_CANDIDATOS = 2

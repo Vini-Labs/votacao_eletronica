@@ -1,4 +1,5 @@
 """Funcionalidades do perfil ELEITOR."""
+from config import ABERTA
 from database.db import conectar, votacao_aberta
 from security.auth import exigir_perfil
 from security.logger import registrar_log
@@ -45,6 +46,12 @@ def votar(usuario):
         )
         if cur.rowcount == 0:
             print("Voto já registrado para este eleitor.")
+            return
+        # Reconfere dentro da mesma transação (a votação pode ter sido encerrada agora)
+        estado = conn.execute("SELECT valor FROM config WHERE chave = 'estado'").fetchone()["valor"]
+        if estado != ABERTA:
+            conn.rollback()
+            print("A votação foi encerrada. Voto não registrado.")
             return
         conn.execute("INSERT INTO votos (candidato_id) VALUES (?)", (escolha,))
     registrar_log(usuario["username"], "VOTO_REGISTRADO")  # registra quem votou, não em quem

@@ -1,5 +1,6 @@
 """Funcionalidades do perfil APURADOR."""
-from database.db import conectar, votacao_aberta
+from config import ENCERRADA
+from database.db import conectar, estado_votacao
 from security.auth import exigir_perfil
 from security.logger import registrar_log
 
@@ -7,7 +8,7 @@ from security.logger import registrar_log
 def apurar(usuario):
     if not exigir_perfil(usuario, "apurador"):
         return
-    if votacao_aberta():
+    if estado_votacao() != ENCERRADA:
         print("Resultados disponíveis apenas após o encerramento da votação.")
         return
     with conectar() as conn:

@@ -1,7 +1,7 @@
 """Conexão com o SQLite e criação das tabelas."""
 import sqlite3
 
-from config import DB_PATH
+from config import ABERTA, DB_PATH, NAO_INICIADA
 
 
 def conectar():
@@ -22,7 +22,7 @@ def criar_tabelas():
             );
             CREATE TABLE IF NOT EXISTS candidatos (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                nome TEXT UNIQUE NOT NULL
+                nome TEXT UNIQUE NOT NULL COLLATE NOCASE
             );
             -- Sem coluna de usuário: quem votou fica separado de em quem votou
             CREATE TABLE IF NOT EXISTS votos (
@@ -40,13 +40,16 @@ def criar_tabelas():
                 chave TEXT PRIMARY KEY,
                 valor TEXT NOT NULL
             );
-            INSERT OR IGNORE INTO config (chave, valor) VALUES ('votacao_aberta', '0');
         """)
+        conn.execute(
+            "INSERT OR IGNORE INTO config (chave, valor) VALUES ('estado', ?)", (NAO_INICIADA,)
+        )
+
+
+def estado_votacao():
+    with conectar() as conn:
+        return conn.execute("SELECT valor FROM config WHERE chave = 'estado'").fetchone()["valor"]
 
 
 def votacao_aberta():
-    with conectar() as conn:
-        valor = conn.execute(
-            "SELECT valor FROM config WHERE chave = 'votacao_aberta'"
-        ).fetchone()["valor"]
-    return valor == "1"
+    return estado_votacao() == ABERTA
