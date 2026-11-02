@@ -1,0 +1,17 @@
+# Ambiente virtual e caches
+venv/
+.venv/
+__pycache__/
+*.pyc
+tempCodeRunnerFile.py
+
+# Dados sensíveis: banco (votos + logs) e segredo de cifra NUNCA vão pro Git
+*.db
+*.sqlite3
+segredo.key
+*.key
+
+# Editor/SO
+.vscode/
+.idea/
+.DS_Store
