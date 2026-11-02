@@ -1,6 +1,7 @@
 """Funcionalidades do perfil ADMIN."""
 import re
 import sqlite3
+from datetime import datetime
 from getpass import getpass
 
 from config import ABERTA, ENCERRADA, MIN_CANDIDATOS, NAO_INICIADA
@@ -95,11 +96,85 @@ def alternar_votacao(usuario):
         print("Votação encerrada.")
 
 
+POR_PAGINA = 10
+
+
+def _ler_data(msg):
+    """Lê data AAAA-MM-DD (ou vazio). Devolve (ok, valor)."""
+    txt = input(msg).strip()
+    if not txt:
+        return True, None
+    try:
+        return True, datetime.strptime(txt, "%Y-%m-%d").strftime("%Y-%m-%d")
+    except ValueError:
+        print("Data inválida. Use AAAA-MM-DD (ex.: 2026-11-02).")
+        return False, None
+
+
 def ver_logs(usuario):
+    """Consulta de logs com filtros (usuário, ação, período) e paginação."""
     if not exigir_perfil(usuario, "admin"):
         return
+    print("\n--- Consulta de logs (deixe em branco para não filtrar) ---")
+    print("Obs.: eleitores e apuradores aparecem como pseudônimo (ex.: eleitor#9c4405).")
+    quem = input("Usuário/pseudônimo (parte do nome): ").strip()
+    acao = input("Ação (parte do nome, ex.: LOGIN): ").strip()
+    ok, de = _ler_data("Data inicial (AAAA-MM-DD): ")
+    if not ok:
+        return
+    ok, ate = _ler_data("Data final   (AAAA-MM-DD): ")
+    if not ok:
+        return
+    if de and ate and de > ate:
+        print("A data inicial não pode ser maior que a final.")
+        return
+
+    where, params = [], []
+    esc = lambda t: t.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    if quem:
+        where.append("usuario LIKE ? ESCAPE '\\'")
+        params.append(f"%{esc(quem)}%")
+    if acao:
+        where.append("acao LIKE ? ESCAPE '\\'")
+        params.append(f"%{esc(acao.upper())}%")
+    if de:
+        where.append("data_hora >= ?")
+        params.append(f"{de} 00:00:00")
+    if ate:
+        where.append("data_hora <= ?")
+        params.append(f"{ate} 23:59:59")
+    filtro = (" WHERE " + " AND ".join(where)) if where else ""
+
     with conectar() as conn:
-        linhas = conn.execute("SELECT * FROM logs ORDER BY id DESC LIMIT 20").fetchall()
-    print("\n--- Últimos 20 registros ---")
-    for l in linhas:
-        print(f"{l['data_hora']} | {l['usuario']:<12} | {l['acao']:<24} | {l['detalhe']}")
+        total = conn.execute(f"SELECT COUNT(*) FROM logs{filtro}", params).fetchone()[0]
+    if total == 0:
+        print("Nenhum registro encontrado.")
+        return
+
+    paginas = -(-total // POR_PAGINA)
+    pagina = 1
+    while True:
+        with conectar() as conn:
+            linhas = conn.execute(
+                f"SELECT * FROM logs{filtro} ORDER BY id DESC LIMIT ? OFFSET ?",
+                params + [POR_PAGINA, (pagina - 1) * POR_PAGINA],
+            ).fetchall()
+        print(f"\n--- Página {pagina}/{paginas} ({total} registros) ---")
+        for l in linhas:
+            print(f"{l['data_hora']} | {l['usuario']:<16} | {l['acao']:<26} | {l['detalhe']}")
+        cmd = input("[p] próxima  [a] anterior  [n] nº da página  [s] sair: ").strip().lower()
+        if cmd == "p" and pagina < paginas:
+            pagina += 1
+        elif cmd == "a" and pagina > 1:
+            pagina -= 1
+        elif cmd == "n":
+            try:
+                alvo = int(input(f"Página (1-{paginas}): ").strip())
+            except ValueError:
+                alvo = 0
+            if 1 <= alvo <= paginas:
+                pagina = alvo
+            else:
+                print("Página inválida.")
+        elif cmd == "s":
+            break
