@@ -82,7 +82,7 @@ def _limpar_falhas(chave):
 
 def criar_usuario(username, senha, perfil, autor="sistema"):
     if not validar_username(username):
-        return False, "Usuário inválido: use 3 a 20 letras, números ou _."
+        return False, "Usuário inválido: 3 a 20 caracteres (letras, números ou _), começando por letra e com ao menos 3 letras."
     if not validar_senha(senha):
         return False, "Senha fraca: mínimo de 8 caracteres, com letras e números."
     if perfil not in PERFIS:
