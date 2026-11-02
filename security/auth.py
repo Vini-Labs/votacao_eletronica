@@ -5,6 +5,7 @@ from getpass import getpass
 from config import MAX_TENTATIVAS, PERFIS
 from database.db import conectar
 from security.logger import registrar_log
+from security.privacidade import rotulo
 from security.senhas import checar_senha, gerar_hash
 from security.validacoes import validar_senha, validar_username
 
@@ -24,7 +25,7 @@ def criar_usuario(username, senha, perfil, autor="sistema"):
             )
     except sqlite3.IntegrityError:
         return False, "Esse nome de usuário já existe."
-    registrar_log(autor, "USUARIO_CRIADO", f"{username} ({perfil})")
+    registrar_log(autor, "USUARIO_CRIADO", f"{rotulo(username, perfil)} ({perfil})")
     return True, "Usuário criado com sucesso."
 
 
