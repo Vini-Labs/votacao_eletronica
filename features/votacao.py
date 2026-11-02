@@ -2,6 +2,7 @@
 from config import ABERTA
 from database.db import conectar, votacao_aberta
 from security.auth import exigir_perfil
+from security.cifra import cifrar_voto
 from security.logger import registrar_log
 from security.validacoes import ler_inteiro
 
@@ -53,6 +54,7 @@ def votar(usuario):
             conn.rollback()
             print("A votação foi encerrada. Voto não registrado.")
             return
-        conn.execute("INSERT INTO votos (candidato_id) VALUES (?)", (escolha,))
+        # O voto vai cifrado, sem usuário, sem data e sem ordem
+        conn.execute("INSERT INTO votos (voto_cifrado) VALUES (?)", (cifrar_voto(escolha),))
     registrar_log(usuario["username"], "VOTO_REGISTRADO")  # registra quem votou, não em quem
     print("Voto registrado com sucesso.")
