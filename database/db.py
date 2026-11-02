@@ -37,6 +37,11 @@ def criar_tabelas():
                 detalhe TEXT,
                 data_hora TEXT NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS tentativas_login (
+                username TEXT PRIMARY KEY,
+                falhas INTEGER NOT NULL DEFAULT 0,
+                bloqueado_ate REAL NOT NULL DEFAULT 0
+            );
             CREATE TABLE IF NOT EXISTS config (
                 chave TEXT PRIMARY KEY,
                 valor TEXT NOT NULL
