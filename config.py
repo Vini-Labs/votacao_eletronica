@@ -6,6 +6,7 @@ DB_PATH = BASE_DIR / "votacao.db"
 SEGREDO_PATH = BASE_DIR / "segredo.key"
 
 MAX_TENTATIVAS = 3
+BLOQUEIO_SEGUNDOS = 300  # bloqueio após MAX_TENTATIVAS falhas seguidas
 PERFIS = ("admin", "apurador", "eleitor")
 
 # Estados da eleição (só avançam, nunca voltam): nao_iniciada -> aberta -> encerrada
