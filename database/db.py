@@ -24,11 +24,12 @@ def criar_tabelas():
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 nome TEXT UNIQUE NOT NULL COLLATE NOCASE
             );
-            -- Sem coluna de usuário: quem votou fica separado de em quem votou
+            -- Sem usuário, sem data e sem ordem: o voto é cifrado (AES-GCM, nonce aleatório)
+            -- e a chave primária é o próprio texto cifrado (WITHOUT ROWID), então a ordem
+            -- física no arquivo é aleatória e não dá para ligar um voto a quem votou.
             CREATE TABLE IF NOT EXISTS votos (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                candidato_id INTEGER NOT NULL REFERENCES candidatos(id)
-            );
+                voto_cifrado BLOB PRIMARY KEY
+            ) WITHOUT ROWID;
             CREATE TABLE IF NOT EXISTS logs (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 usuario TEXT NOT NULL,
