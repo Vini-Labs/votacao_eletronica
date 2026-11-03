@@ -15,7 +15,7 @@ def criar_tabelas():
         conn.executescript("""
             CREATE TABLE IF NOT EXISTS usuarios (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT UNIQUE NOT NULL,
+                username TEXT UNIQUE NOT NULL COLLATE NOCASE,
                 senha_hash BLOB NOT NULL,
                 perfil TEXT NOT NULL CHECK (perfil IN ('admin','apurador','eleitor')),
                 ja_votou INTEGER NOT NULL DEFAULT 0
